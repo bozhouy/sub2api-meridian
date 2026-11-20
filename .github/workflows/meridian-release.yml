@@ -1,0 +1,74 @@
+name: Publish Meridian
+on:
+  push:
+    tags: ['v*-meridian.*']
+permissions:
+  contents: read
+concurrency:
+  group: meridian-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Verify tag
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-meridian\.[0-9]+$ ]]
+          test "${GITHUB_REF_NAME#v}" = "$(tr -d '\r\n' < backend/cmd/server/VERSION)"
+      - name: Test and build frontend
+        working-directory: frontend
+        run: |
+          npm install --global pnpm@9.15.9
+          pnpm install --frozen-lockfile
+          pnpm exec vitest run src/components/account/__tests__/CreateAccountModal.spec.ts src/components/account/__tests__/EditAccountModal.spec.ts src/components/account/__tests__/OpenAIRequestTimezoneField.spec.ts src/components/admin/account/__tests__/CodexDiagnosticModal.spec.ts
+          pnpm run build
+      - name: Test and build backend
+        working-directory: backend
+        run: |
+          go test -p 2 -count=1 ./internal/service ./internal/handler/admin -run 'Test.*(RequestLocale|RequestEnvironment|RequestTimezone|RequestLanguage|ModelTrace|Diagnostic)'
+          mkdir -p ../image
+          CGO_ENABLED=0 go build -tags embed -trimpath -ldflags "-s -w -X main.Version=${GITHUB_REF_NAME#v} -X main.Commit=$GITHUB_SHA" -o ../image/sub2api ./cmd/server
+      - name: Create and verify release image
+        run: |
+          image="ghcr.io/$GITHUB_REPOSITORY:${GITHUB_REF_NAME#v}"
+          docker build -f deploy/Dockerfile.meridian --build-arg "VERSION=${GITHUB_REF_NAME#v}" --build-arg "REVISION=$GITHUB_SHA" -t "$image" image
+          docker run --rm --network none --entrypoint /app/sub2api "$image" -version 2>&1 | grep -F "Sub2API ${GITHUB_REF_NAME#v} "
+          docker save "$image" | gzip -1 > sub2api-meridian-linux-amd64.tar.gz
+          sha256sum sub2api-meridian-linux-amd64.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-image
+          path: |
+            sub2api-meridian-linux-amd64.tar.gz
+            SHA256SUMS
+          retention-days: 3
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-image
+      - name: Publish container and offline image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha256sum -c SHA256SUMS
+          docker load -i sub2api-meridian-linux-amd64.tar.gz
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "ghcr.io/$GITHUB_REPOSITORY:${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" --verify-tag --repo "$GITHUB_REPOSITORY" --title "Sub2API Meridian ${GITHUB_REF_NAME#v}" --notes "Linux amd64. See the repository README for Compose upgrades and offline installation." sub2api-meridian-linux-amd64.tar.gz SHA256SUMS

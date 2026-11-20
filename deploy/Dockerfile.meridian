@@ -1,0 +1,16 @@
+FROM weishaw/sub2api:0.2.23@sha256:149ddcb8a1c013d1b4d0f3fef86f19e7971d0853befc65d3dbe9996855c53f98 AS assembly
+COPY --chown=1000:1000 sub2api /app/sub2api
+FROM scratch
+COPY --from=assembly / /
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+WORKDIR /app
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 CMD wget -q -T 5 -O /dev/null http://localhost:${SERVER_PORT:-8080}/health || exit 1
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["/app/sub2api"]
+ARG REVISION
+ARG VERSION
+LABEL org.opencontainers.image.title="Sub2API Meridian" \
+      org.opencontainers.image.source="https://github.com/bozhouy/sub2api-meridian" \
+      org.opencontainers.image.version="$VERSION" \
+      org.opencontainers.image.revision="$REVISION"
