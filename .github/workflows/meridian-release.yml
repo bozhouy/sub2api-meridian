@@ -2,10 +2,18 @@ name: Publish Meridian
 on:
   push:
     tags: ['v*-meridian.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing Meridian release tag
+        required: true
+        type: string
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 permissions:
   contents: read
 concurrency:
-  group: meridian-${{ github.ref }}
+  group: meridian-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 jobs:
   build:
@@ -14,6 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -24,8 +33,9 @@ jobs:
           cache-dependency-path: backend/go.sum
       - name: Verify tag
         run: |
-          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-meridian\.[0-9]+$ ]]
-          test "${GITHUB_REF_NAME#v}" = "$(tr -d '\r\n' < backend/cmd/server/VERSION)"
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-meridian\.[0-9]+$ ]]
+          test "${RELEASE_TAG#v}" = "$(tr -d '\r\n' < backend/cmd/server/VERSION)"
+          echo "SOURCE_REV=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Test and build frontend
         working-directory: frontend
         run: |
@@ -38,12 +48,12 @@ jobs:
         run: |
           go test -p 2 -count=1 ./internal/service ./internal/handler/admin -run 'Test.*(RequestLocale|RequestEnvironment|RequestTimezone|RequestLanguage|ModelTrace|Diagnostic)'
           mkdir -p ../image
-          CGO_ENABLED=0 go build -tags embed -trimpath -ldflags "-s -w -X main.Version=${GITHUB_REF_NAME#v} -X main.Commit=$GITHUB_SHA" -o ../image/sub2api ./cmd/server
+          CGO_ENABLED=0 go build -tags embed -trimpath -ldflags "-s -w -X main.Version=${RELEASE_TAG#v} -X main.Commit=$SOURCE_REV" -o ../image/sub2api ./cmd/server
       - name: Create and verify release image
         run: |
-          image="ghcr.io/$GITHUB_REPOSITORY:${GITHUB_REF_NAME#v}"
-          docker build -f deploy/Dockerfile.meridian --build-arg "VERSION=${GITHUB_REF_NAME#v}" --build-arg "REVISION=$GITHUB_SHA" -t "$image" image
-          docker run --rm --network none --entrypoint /app/sub2api "$image" -version 2>&1 | grep -F "Sub2API ${GITHUB_REF_NAME#v} "
+          image="ghcr.io/$GITHUB_REPOSITORY:${RELEASE_TAG#v}"
+          docker build -f deploy/Dockerfile.meridian --build-arg "VERSION=${RELEASE_TAG#v}" --build-arg "REVISION=$SOURCE_REV" -t "$image" image
+          docker run --rm --network none --entrypoint /app/sub2api "$image" -version 2>&1 | grep -F "Sub2API ${RELEASE_TAG#v} "
           docker save "$image" | gzip -1 > sub2api-meridian-linux-amd64.tar.gz
           sha256sum sub2api-meridian-linux-amd64.tar.gz > SHA256SUMS
       - uses: actions/upload-artifact@v4
@@ -70,5 +80,5 @@ jobs:
           sha256sum -c SHA256SUMS
           docker load -i sub2api-meridian-linux-amd64.tar.gz
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          docker push "ghcr.io/$GITHUB_REPOSITORY:${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" --verify-tag --repo "$GITHUB_REPOSITORY" --title "Sub2API Meridian ${GITHUB_REF_NAME#v}" --notes "Linux amd64. See the repository README for Compose upgrades and offline installation." sub2api-meridian-linux-amd64.tar.gz SHA256SUMS
+          docker push "ghcr.io/$GITHUB_REPOSITORY:${RELEASE_TAG#v}"
+          gh release create "$RELEASE_TAG" --verify-tag --repo "$GITHUB_REPOSITORY" --title "Sub2API Meridian ${RELEASE_TAG#v}" --notes "Linux amd64. See the repository README for Compose upgrades and offline installation." sub2api-meridian-linux-amd64.tar.gz SHA256SUMS
