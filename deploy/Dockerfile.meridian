@@ -1,4 +1,4 @@
-FROM weishaw/sub2api:0.2.23@sha256:149ddcb8a1c013d1b4d0f3fef86f19e7971d0853befc65d3dbe9996855c53f98 AS assembly
+FROM weishaw/sub2api:0.2.24@sha256:c1acdd4cd1c328e6df20e513944d72fff641d4ae8c07d207458156c97c74784a AS assembly
 COPY --chown=1000:1000 sub2api /app/sub2api
 FROM scratch
 COPY --from=assembly / /

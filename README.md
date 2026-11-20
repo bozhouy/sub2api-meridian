@@ -1,6 +1,6 @@
 # Sub2API Meridian
 
-Meridian 是基于 [Sub2API](https://github.com/Wei-Shaw/sub2api) 的社区定制版。`0.2.23-meridian.2` 基于上游 `v0.2.23`，提供 Linux amd64 Docker 镜像，可在 x86-64 VPS 或使用 Linux 容器的 Docker Desktop 上运行。自此版本起，后台只检查本仓库的正式发布，并按数字比较 Meridian 修订号。
+Meridian 是基于 [Sub2API](https://github.com/Wei-Shaw/sub2api) 的社区定制版。`0.2.24-meridian.1` 基于上游 `v0.2.24`，提供 Linux amd64 Docker 镜像，可在 x86-64 VPS 或使用 Linux 容器的 Docker Desktop 上运行。后台只检查本仓库的正式发布，并按数字比较 Meridian 修订号。
 
 | 功能 | 使用方式 |
 | --- | --- |
@@ -10,7 +10,7 @@ Meridian 是基于 [Sub2API](https://github.com/Wei-Shaw/sub2api) 的社区定�
 
 ## 已有 VPS 如何更新
 
-1. 打开 [Releases](https://github.com/bozhouy/sub2api-meridian/releases)，选定目标版本。Git 标签带 `v`，镜像标签不带。例如 `v0.2.23-meridian.2` 对应 `0.2.23-meridian.2`。
+1. 打开 [Releases](https://github.com/bozhouy/sub2api-meridian/releases)，选定目标版本。Git 标签带 `v`，镜像标签不带。例如 `v0.2.24-meridian.1` 对应 `0.2.24-meridian.1`。
 2. 在原 Compose 项目目录执行 `docker compose config --services`，确认应用服务名称。**仅修改原应用服务的 `image` 行**，沿用原来的目录、端口、环境变量、PostgreSQL、Redis 和反向代理。
 
    ```yaml
@@ -20,7 +20,7 @@ Meridian 是基于 [Sub2API](https://github.com/Wei-Shaw/sub2api) 的社区定�
 3. 在原 `.env` 中新增或更新这一行。以后升级只改版本号。
 
    ```dotenv
-   SUB2API_VERSION=0.2.23-meridian.2
+   SUB2API_VERSION=0.2.24-meridian.1
    ```
 
 4. 先拉取镜像，再备份 PostgreSQL（`pg_dump -Fc`）、原 Compose、`.env`、应用配置和持久化文件。已有备份脚本的部署可以直接运行原脚本。下面以应用服务名 `app` 为例，使用本仓库模板时服务名为 `sub2api`。
@@ -41,13 +41,13 @@ Meridian 是基于 [Sub2API](https://github.com/Wei-Shaw/sub2api) 的社区定�
 以下命令适用于 Bash，需要 Git、Docker Compose v2 和 OpenSSL。在空目录运行。
 
 ```bash
-git clone --depth=1 --branch v0.2.23-meridian.2 https://github.com/bozhouy/sub2api-meridian.git
+git clone --depth=1 --branch v0.2.24-meridian.1 https://github.com/bozhouy/sub2api-meridian.git
 cd sub2api-meridian/deploy
 cp docker-compose.local.yml compose.yaml
 umask 077
 read -r -p '管理员邮箱: ' admin_email
 {
-  printf 'SUB2API_VERSION=0.2.23-meridian.2\nBIND_HOST=127.0.0.1\n'
+  printf 'SUB2API_VERSION=0.2.24-meridian.1\nBIND_HOST=127.0.0.1\n'
   printf 'ADMIN_EMAIL=%s\n' "$admin_email"
   for key in POSTGRES_PASSWORD REDIS_PASSWORD JWT_SECRET TOTP_ENCRYPTION_KEY ADMIN_PASSWORD; do
     printf '%s=%s\n' "$key" "$(openssl rand -hex 32)"
@@ -64,7 +64,7 @@ docker compose ps
 Google OAuth 的客户端密钥由部署者自行配置。使用 Gemini CLI 或 Antigravity 登录时，分别设置 `GEMINI_CLI_OAUTH_CLIENT_SECRET` 或 `ANTIGRAVITY_OAUTH_CLIENT_SECRET`；如使用自己的 Gemini OAuth 客户端，配置配套的客户端 ID 和密钥。
 
 ```bash
-docker pull ghcr.io/bozhouy/sub2api-meridian:0.2.23-meridian.2
+docker pull ghcr.io/bozhouy/sub2api-meridian:0.2.24-meridian.1
 ```
 
 每个成功发布的版本也在 [Releases](../../releases) 提供 Docker 离线归档和 SHA-256。将两个文件下载到同一目录，执行 `sha256sum -c SHA256SUMS`，然后 `docker load -i sub2api-meridian-linux-amd64.tar.gz`。使用已加载的版本启动时可以运行 `docker compose up -d --pull never`。
