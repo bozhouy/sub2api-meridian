@@ -286,7 +286,10 @@
                     />
                   </svg>
                   <p class="text-xs text-blue-600 dark:text-blue-400">
-                    {{ t('version.sourceModeHint') }}
+                    <a v-if="buildType === 'docker'" :href="composeGuide" target="_blank" rel="noopener noreferrer" class="underline">
+                      {{ t('version.dockerUpdateHint') }}
+                    </a>
+                    <template v-else>{{ t('version.sourceModeHint') }}</template>
                   </p>
                 </div>
               </div>
@@ -414,7 +417,10 @@
                           />
                         </svg>
                         <p class="min-w-0 flex-1 text-xs leading-4 text-blue-600 dark:text-blue-400">
-                          {{ t('version.rollbackSourceHint') }}
+                          <a v-if="buildType === 'docker'" :href="composeGuide" target="_blank" rel="noopener noreferrer" class="underline">
+                            {{ t('version.dockerRollbackHint') }}
+                          </a>
+                          <template v-else>{{ t('version.rollbackSourceHint') }}</template>
                         </p>
                       </div>
 
@@ -651,9 +657,9 @@ import {
 import { useClipboard } from '@/composables/useClipboard'
 import Icon from '@/components/icons/Icon.vue'
 
-const GITHUB_REPO = 'Wei-Shaw/sub2api'
-// Docker Hub image published by CI (tags carry no "v" prefix, e.g. weishaw/sub2api:0.1.146)
-const DOCKER_IMAGE = 'weishaw/sub2api'
+const GITHUB_REPO = 'bozhouy/sub2api-meridian'
+const DOCKER_IMAGE = `ghcr.io/${GITHUB_REPO}`
+const composeGuide = `https://github.com/${GITHUB_REPO}#已有-vps-如何更新`
 
 const { t } = useI18n()
 

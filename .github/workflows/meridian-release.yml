@@ -46,9 +46,9 @@ jobs:
       - name: Test and build backend
         working-directory: backend
         run: |
-          go test -p 2 -count=1 ./internal/service ./internal/handler/admin -run 'Test.*(RequestLocale|RequestEnvironment|RequestTimezone|RequestLanguage|ModelTrace|Diagnostic)'
+          go test -p 2 -count=1 ./internal/service ./internal/handler/admin -run 'Test.*(RequestLocale|RequestEnvironment|RequestTimezone|RequestLanguage|ModelTrace|Diagnostic|MeridianVersion)'
           mkdir -p ../image
-          CGO_ENABLED=0 go build -tags embed -trimpath -ldflags "-s -w -X main.Version=${RELEASE_TAG#v} -X main.Commit=$SOURCE_REV" -o ../image/sub2api ./cmd/server
+          CGO_ENABLED=0 go build -tags embed -trimpath -ldflags "-s -w -X main.BuildType=docker -X main.Version=${RELEASE_TAG#v} -X main.Commit=$SOURCE_REV" -o ../image/sub2api ./cmd/server
       - name: Create and verify release image
         run: |
           image="ghcr.io/$GITHUB_REPOSITORY:${RELEASE_TAG#v}"

@@ -31,6 +31,8 @@ export default {
     refresh: '刷新',
     sourceMode: '源码构建',
     sourceModeHint: '源码构建请使用 git pull 更新',
+    dockerUpdateHint: '使用 Docker Compose 更新（查看命令）',
+    dockerRollbackHint: '查看 Docker Compose 版本回退说明',
     updateNow: '立即更新',
     updating: '正在更新...',
     updateComplete: '更新完成',

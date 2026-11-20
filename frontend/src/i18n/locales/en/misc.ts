@@ -31,6 +31,8 @@ export default {
     refresh: 'Refresh',
     sourceMode: 'Source Build',
     sourceModeHint: 'Source build, use git pull to update',
+    dockerUpdateHint: 'View Docker Compose update commands',
+    dockerRollbackHint: 'View Docker Compose rollback instructions',
     updateNow: 'Update Now',
     updating: 'Updating...',
     updateComplete: 'Update Complete',

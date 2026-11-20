@@ -30,7 +30,7 @@ var (
 const (
 	updateCacheKey = "update_check_cache"
 	updateCacheTTL = 1200 // 20 minutes
-	githubRepo     = "Wei-Shaw/sub2api"
+	githubRepo     = "bozhouy/sub2api-meridian"
 
 	// Security: allowed download domains for updates
 	allowedDownloadHost = "github.com"
@@ -642,7 +642,7 @@ func compareVersions(current, latest string) int {
 	currentParts := parseVersion(current)
 	latestParts := parseVersion(latest)
 
-	for i := 0; i < 3; i++ {
+	for i := range currentParts {
 		if currentParts[i] < latestParts[i] {
 			return -1
 		}
@@ -653,13 +653,16 @@ func compareVersions(current, latest string) int {
 	return 0
 }
 
-func parseVersion(v string) [3]int {
+func parseVersion(v string) [4]int {
 	v = strings.TrimPrefix(v, "v")
-	if idx := strings.IndexByte(v, '-'); idx != -1 {
-		v = v[:idx]
+	base, suffix, _ := strings.Cut(v, "-")
+	var result [4]int
+	if revision, ok := strings.CutPrefix(suffix, "meridian."); ok {
+		if n, err := strconv.Atoi(revision); err == nil && n >= 0 {
+			result[3] = n
+		}
 	}
-	parts := strings.Split(v, ".")
-	result := [3]int{0, 0, 0}
+	parts := strings.Split(base, ".")
 	for i := 0; i < len(parts) && i < 3; i++ {
 		if parsed, err := strconv.Atoi(parts[i]); err == nil {
 			result[i] = parsed
