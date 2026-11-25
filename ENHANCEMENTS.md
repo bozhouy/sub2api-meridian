@@ -1,7 +1,7 @@
-# Sub2API 0.2.24 + local request enhancements
+# Sub2API 0.2.25 + local request enhancements
 
-Base: Wei-Shaw/sub2api release v0.2.24, commit `5c2982a81b46e2142d0143d2f83c1ce9c4da1d24`.
-Meridian release: `0.2.24-meridian.2`.
+Base: Wei-Shaw/sub2api release v0.2.25, commit `348997267d756eab5729bb6b78a275a15d18796a`.
+Meridian release: `0.2.25-meridian.1`.
 
 Administrator navigation follows Sub4API's original account workflow:
 - **账号管理 → 添加账号 / 编辑账号 → 请求时区** uses its searchable timezone field.
@@ -17,7 +17,7 @@ The temporary separate enhancement sidebar was removed; its old URL redirects to
   in Sub4API v1.1.11. Its README's statement about replacing current_date is broader than its actual code.
 - Existing Accept-Language headers on OpenAI HTTP and WebSocket requests are normalized to
   en-US,en;q=0.9. Missing headers stay absent. Per-account opt-out is available.
-  This is a Meridian feature. Sub4API v1.1.11 and upstream v0.2.24 preserve the
+  This is a Meridian feature. Sub4API v1.1.11 and upstream v0.2.25 preserve the
   forwarded language by default. The timezone setting preserves the search tool's
   country, region and city. It does not select a network exit or rewrite the
   upstream response's Content-Language. The round-trip test exercises both HTTP

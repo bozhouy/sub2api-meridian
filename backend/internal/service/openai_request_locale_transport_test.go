@@ -24,26 +24,36 @@ func TestOpenAIRequestLanguageHeadersNormalizeHTTPAndWS(t *testing.T) {
 		{name: "explicit account override", client: "zh-CN", override: "fr-FR", want: "en-US,en;q=0.9"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
+			ctx := WithHeaderOverrideRequestScope(context.Background(), 7, 31, nil)
 			c, _ := gin.CreateTestContext(httptest.NewRecorder())
-			c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil)
+			c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil).WithContext(ctx)
 			if test.client != "" {
 				c.Request.Header.Set("Accept-Language", test.client)
 			}
 			account := &Account{Platform: PlatformOpenAI, Type: AccountTypeAPIKey, Credentials: map[string]any{
 				credKeyHeaderOverrideEnabled: test.override != "",
-				credKeyHeaderOverrides:       map[string]any{"Accept-Language": test.override},
+				credKeyHeaderOverrides:       map[string]any{"Accept-Language": test.override, "x-end-user": "{{user_id}}"},
 			}}
 			svc := &OpenAIGatewayService{}
 			body := []byte(`{"model":"gpt-5.4","input":[]}`)
-			request, err := svc.buildUpstreamRequest(context.Background(), c, account, body, "test-token", false, "", false)
+			request, err := svc.buildUpstreamRequest(ctx, c, account, body, "test-token", false, "", false)
 			require.NoError(t, err)
 			require.Equal(t, test.want, getHeaderRaw(request.Header, "Accept-Language"))
-			request, err = svc.buildUpstreamRequestOpenAIPassthrough(context.Background(), c, account, body, "test-token")
+			if test.override != "" {
+				require.Equal(t, "7", getHeaderRaw(request.Header, "x-end-user"))
+			}
+			request, err = svc.buildUpstreamRequestOpenAIPassthrough(ctx, c, account, body, "test-token")
 			require.NoError(t, err)
 			require.Equal(t, test.want, getHeaderRaw(request.Header, "Accept-Language"))
-			headers, _, err := svc.buildOpenAIWSHeaders(context.Background(), c, account, "test-token", OpenAIWSProtocolDecision{}, false, "", "", "", "gpt-5.4", "")
+			if test.override != "" {
+				require.Equal(t, "7", getHeaderRaw(request.Header, "x-end-user"))
+			}
+			headers, _, err := svc.buildOpenAIWSHeaders(ctx, c, account, "test-token", OpenAIWSProtocolDecision{}, false, "", "", "", "gpt-5.4", "")
 			require.NoError(t, err)
 			require.Equal(t, test.want, getHeaderRaw(headers, "Accept-Language"))
+			if test.override != "" {
+				require.Equal(t, "7", getHeaderRaw(headers, "x-end-user"))
+			}
 		})
 	}
 }
