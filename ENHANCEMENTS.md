@@ -1,7 +1,7 @@
 # Sub2API 0.2.24 + local request enhancements
 
 Base: Wei-Shaw/sub2api release v0.2.24, commit `5c2982a81b46e2142d0143d2f83c1ce9c4da1d24`.
-Meridian release: `0.2.24-meridian.1`.
+Meridian release: `0.2.24-meridian.2`.
 
 Administrator navigation follows Sub4API's original account workflow:
 - **账号管理 → 添加账号 / 编辑账号 → 请求时区** uses its searchable timezone field.

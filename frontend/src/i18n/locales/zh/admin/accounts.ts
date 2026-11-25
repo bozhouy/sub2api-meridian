@@ -2,7 +2,6 @@ export default {
     accounts: {
       codexDiagnosticDialog: {
         "title": "降智检测",
-        "consent": "我知道检测会消耗账号额度，结果仅供参考",
         "steps": "检测步骤",
         "setup": "选择模型",
         "results": "检测结果",

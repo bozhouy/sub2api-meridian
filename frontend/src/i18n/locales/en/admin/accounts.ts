@@ -2,7 +2,6 @@ export default {
     accounts: {
       codexDiagnosticDialog: {
         "title": "Model degradation check",
-        "consent": "I understand that diagnostics consume quota and results are only indicative",
         "steps": "Check steps",
         "setup": "Select models",
         "results": "Check results",

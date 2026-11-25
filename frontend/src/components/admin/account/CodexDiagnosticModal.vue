@@ -29,7 +29,6 @@
           </div>
           <p v-else-if="!keys.length" class="mt-3 text-sm text-amber-700 dark:text-amber-300">{{ text('noKey') }}</p>
           <p class="mt-3 hidden text-xs leading-6 text-gray-500 dark:text-dark-400 md:block">{{ text('keyHint') }}</p>
-          <label class="mt-4 flex items-start gap-2 text-xs leading-6 text-gray-700 dark:text-dark-200"><input v-model="consent" type="checkbox" class="mt-1" :disabled="diagnosing" />{{ text('consent') }}</label>
           <details class="mt-2 text-xs text-gray-500 dark:text-dark-400 md:mt-6 md:border-t md:border-gray-200 md:pt-2 dark:md:border-dark-700">
             <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-gray-700 dark:text-dark-200">{{ text('info') }}<Icon name="chevronDown" size="sm" /></summary>
             <p class="mb-3 leading-6">{{ text('templateHint') }}</p>
@@ -147,7 +146,6 @@ const modelsLoading = ref(false)
 const modelsError = ref('')
 const fingerprintCommit = ref('')
 const selectedKey = ref<number | null>(null)
-const consent = ref(false)
 const selectedModels = ref<string[]>([])
 const diagnosticStage = ref<DiagnosticStage>('setup')
 const diagnosticRun = ref<DiagnosticRun | null>(null)
@@ -167,7 +165,7 @@ const currentDiagnostic = computed(() => diagnosticRun.value?.entries.find(entry
 const keyOptions = computed(() => [
   { value: null, label: text('chooseKey') }, ...keys.value.map(key => ({ value: key.id, label: `${key.name} · #${key.id}` }))
 ])
-const canStart = computed(() => consent.value && selectedModels.value.length <= 6 && props.show && !!props.account && !closing.value && !diagnosing.value &&
+const canStart = computed(() => selectedModels.value.length <= 6 && props.show && !!props.account && !closing.value && !diagnosing.value &&
   !keysLoading.value && !modelsLoading.value && !keysError.value && !modelsError.value &&
   keys.value.some(key => key.id === selectedKey.value) && selectedModels.value.length > 0 &&
   selectedModels.value.every(model => models.value.includes(model)))
@@ -300,7 +298,6 @@ watch(() => [props.show, props.account?.id], () => {
   diagnosticRun.value = null
   diagnosticStage.value = 'setup'
   selectedKey.value = null
-  consent.value = false
   selectedModels.value = []
   keys.value = []
   models.value = []

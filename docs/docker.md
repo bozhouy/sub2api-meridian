@@ -5,13 +5,13 @@
 以下命令适用于 Bash，需要 Git、Docker Compose v2 和 OpenSSL。在空目录运行。
 
 ```bash
-git clone --depth=1 --branch v0.2.24-meridian.1 https://github.com/bozhouy/sub2api-meridian.git
+git clone --depth=1 --branch v0.2.24-meridian.2 https://github.com/bozhouy/sub2api-meridian.git
 cd sub2api-meridian/deploy
 cp docker-compose.local.yml compose.yaml
 umask 077
 read -r -p '管理员邮箱: ' admin_email
 {
-  printf 'SUB2API_VERSION=0.2.24-meridian.1\nBIND_HOST=127.0.0.1\n'
+  printf 'SUB2API_VERSION=0.2.24-meridian.2\nBIND_HOST=127.0.0.1\n'
   printf 'ADMIN_EMAIL=%s\n' "$admin_email"
   for key in POSTGRES_PASSWORD REDIS_PASSWORD JWT_SECRET TOTP_ENCRYPTION_KEY ADMIN_PASSWORD; do
     printf '%s=%s\n' "$key" "$(openssl rand -hex 32)"
@@ -25,7 +25,7 @@ docker compose ps
 
 ## 已有 VPS 如何更新
 
-1. 打开 [Releases](https://github.com/bozhouy/sub2api-meridian/releases)，选定目标版本。Git 标签带 `v`，镜像标签不带。例如 `v0.2.24-meridian.1` 对应 `0.2.24-meridian.1`。
+1. 打开 [Releases](https://github.com/bozhouy/sub2api-meridian/releases)，选定目标版本。Git 标签带 `v`，镜像标签不带。例如 `v0.2.24-meridian.2` 对应 `0.2.24-meridian.2`。
 2. 在原 Compose 项目目录执行 `docker compose config --services`，确认应用服务名称。**仅修改原应用服务的 `image` 行**，沿用原来的目录、端口、环境变量、PostgreSQL、Redis 和反向代理。
 
    ```yaml
@@ -35,7 +35,7 @@ docker compose ps
 3. 在原 `.env` 中新增或更新这一行。以后升级只改版本号。
 
    ```dotenv
-   SUB2API_VERSION=0.2.24-meridian.1
+   SUB2API_VERSION=0.2.24-meridian.2
    ```
 
 4. 先拉取镜像，再备份 PostgreSQL（`pg_dump -Fc`）、原 Compose、`.env`、应用配置和持久化文件。已有备份脚本的部署可以直接运行原脚本。下面以应用服务名 `app` 为例，使用本仓库模板时服务名为 `sub2api`。

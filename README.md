@@ -1,11 +1,11 @@
 # Sub2API Meridian
 
-基于 Sub2API 的定制版，支持按账号设置请求时区、统一 OpenAI 请求语言头和模型指纹检测。当前版本为 `0.2.24-meridian.1`，镜像适用于 Linux amd64。
+基于 Sub2API 的定制版，支持按账号设置请求时区、统一 OpenAI 请求语言头和模型指纹检测。当前版本为 `0.2.24-meridian.2`，镜像适用于 Linux amd64。
 
 ## 拉取镜像
 
 ```bash
-docker pull ghcr.io/bozhouy/sub2api-meridian:0.2.24-meridian.1
+docker pull ghcr.io/bozhouy/sub2api-meridian:0.2.24-meridian.2
 ```
 
 ## 首次安装
@@ -17,7 +17,7 @@ docker pull ghcr.io/bozhouy/sub2api-meridian:0.2.24-meridian.1
 ```bash
 mkdir sub2api-meridian
 cd sub2api-meridian
-curl -fL https://raw.githubusercontent.com/bozhouy/sub2api-meridian/v0.2.24-meridian.1/deploy/docker-compose.local.yml -o compose.yaml
+curl -fL https://raw.githubusercontent.com/bozhouy/sub2api-meridian/v0.2.24-meridian.2/deploy/docker-compose.local.yml -o compose.yaml
 ```
 
 **2. 配置管理员账号**
@@ -27,7 +27,7 @@ curl -fL https://raw.githubusercontent.com/bozhouy/sub2api-meridian/v0.2.24-meri
 ```bash
 umask 077
 cat > .env <<EOF
-SUB2API_VERSION=0.2.24-meridian.1
+SUB2API_VERSION=0.2.24-meridian.2
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=$(openssl rand -hex 24)
 POSTGRES_PASSWORD=$(openssl rand -hex 32)
@@ -60,11 +60,11 @@ ssh -L 18080:127.0.0.1:8080 -N user@your-vps
 image: ghcr.io/bozhouy/sub2api-meridian:${SUB2API_VERSION:?set SUB2API_VERSION in .env}
 ```
 
-在原 `.env` 中设置 `SUB2API_VERSION=0.2.24-meridian.1`，再执行下面的更新命令。完成后用原管理员账号登录原网址。
+在原 `.env` 中设置 `SUB2API_VERSION=0.2.24-meridian.2`，再执行下面的更新命令。完成后用原管理员账号登录原网址。
 
 ## 已有 VPS 如何更新
 
-在原部署目录，将 `.env` 的 `SUB2API_VERSION` 改为目标镜像标签（例如 `0.2.24-meridian.1`），然后拉取镜像并重建应用容器。模板中的应用服务名是 `sub2api`；如果自己的服务名是 `app`，将命令中的 `sub2api` 换成 `app`。使用自定义 `-f` 或 `-p` 的部署继续使用原参数。
+在原部署目录，将 `.env` 的 `SUB2API_VERSION` 改为目标镜像标签（例如 `0.2.24-meridian.2`），然后拉取镜像并重建应用容器。模板中的应用服务名是 `sub2api`；如果自己的服务名是 `app`，将命令中的 `sub2api` 换成 `app`。使用自定义 `-f` 或 `-p` 的部署继续使用原参数。
 
 ```bash
 docker compose pull sub2api && docker compose up -d --no-deps sub2api

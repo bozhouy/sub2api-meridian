@@ -26,13 +26,21 @@ beforeEach(() => {
 })
 
 describe('account model diagnostic dialog', () => {
-  it('loads account-scoped controls without issuing requests and requires consent', async () => {
+  it('starts only when the user clicks Start with a key and model selected', async () => {
+    diagnose.mockResolvedValue({ items: [{ model: 'gpt-5.6-terra', status: 'normal' }] })
     const w = create(); await flushPromises()
     const vm = w.vm as any
-    vm.selectedKey = 1; vm.selectedModels = ['gpt-5.6-terra']
-    await vm.runDiagnostic()
+    const start = w.get('[data-action="start"]')
+    expect(start.attributes('disabled')).toBeDefined()
+    vm.selectedKey = 1
+    vm.selectedModels = ['gpt-5.6-terra']
+    await flushPromises()
     expect(diagnose).not.toHaveBeenCalled()
-    expect(w.text()).toContain('Owner')
+    expect(start.attributes('disabled')).toBeUndefined()
+    await start.trigger('click')
+    await flushPromises()
+    expect(diagnose).toHaveBeenCalledTimes(1)
+    expect(diagnose).toHaveBeenCalledWith(3, 1, ['gpt-5.6-terra'], expect.any(AbortSignal))
     w.unmount()
   })
   it('uses the selected account, retains failed results and continues the queue', async () => {
@@ -40,7 +48,7 @@ describe('account model diagnostic dialog', () => {
       .mockResolvedValueOnce({ items: [{ model: 'gpt-6-luna', status: 'uncertain', reason: 'low_confidence' }] })
     const w = create(); await flushPromises()
     const vm = w.vm as any
-    vm.selectedKey = 1; vm.selectedModels = ['gpt-5.6-terra', 'gpt-6-luna']; vm.consent = true
+    vm.selectedKey = 1; vm.selectedModels = ['gpt-5.6-terra', 'gpt-6-luna']
     await vm.runDiagnostic(); await flushPromises()
     expect(diagnose).toHaveBeenCalledWith(3, 1, ['gpt-5.6-terra'], expect.any(AbortSignal))
     expect(diagnose).toHaveBeenLastCalledWith(3, 1, ['gpt-6-luna'], expect.any(AbortSignal))
@@ -53,7 +61,7 @@ describe('account model diagnostic dialog', () => {
     diagnose.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
     const w = create(); await flushPromises()
     const vm = w.vm as any
-    vm.selectedKey = 1; vm.selectedModels = ['gpt-5.6-terra', 'gpt-6-luna']; vm.consent = true
+    vm.selectedKey = 1; vm.selectedModels = ['gpt-5.6-terra', 'gpt-6-luna']
     const running = vm.runDiagnostic(); await flushPromises()
     const signal = diagnose.mock.calls[0][3] as AbortSignal
     await w.setProps({ account: { ...account, id: 4, name: 'Other' } })
@@ -61,7 +69,6 @@ describe('account model diagnostic dialog', () => {
     finish({ items: [{ model: 'gpt-5.6-terra', status: 'normal' }] }); await running; await flushPromises()
     expect(diagnose).toHaveBeenCalledTimes(1)
     expect(w.find('[data-model]').exists()).toBe(false)
-    expect(vm.consent).toBe(false)
     w.unmount()
   })
 })
